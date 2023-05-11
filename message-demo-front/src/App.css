@@ -1,0 +1,13 @@
+.chat-window {
+  display: flex;
+}
+
+.messages {
+  height: 20rem;
+  overflow: scroll;
+}
+
+.messages__chat {
+  display: flex;
+  align-items: center;
+}

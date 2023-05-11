@@ -1,0 +1,15 @@
+body {
+  display: grid;
+  place-content: center;
+  min-height: 100vh;
+}
+
+li {
+  cursor: pointer;
+}
+
+.chat-window {
+  display: flex;
+  justify-content: space-around;
+  width: 50rem;
+}

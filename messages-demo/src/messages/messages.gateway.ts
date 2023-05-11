@@ -2,6 +2,7 @@ import {
   ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
+  OnGatewayDisconnect,
   OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
@@ -9,23 +10,39 @@ import {
 } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
 import * as jwt from 'jsonwebtoken';
-import { ForbiddenException } from '@nestjs/common';
+import { AppService } from '../app.service';
+import { Injectable } from '@nestjs/common';
 
 @WebSocketGateway({
   cors: '*',
 })
-export class MessageGateway implements OnGatewayConnection, OnGatewayInit {
+@Injectable()
+export class MessageGateway
+  implements OnGatewayConnection, OnGatewayInit, OnGatewayDisconnect
+{
+  constructor(private readonly appService: AppService) {}
+
   @WebSocketServer()
   server;
 
   afterInit(server: any) {
     server.use((socket, next) => {
-      const auth = socket.handshake.auth || socket.params.token;
-      const decoded = jwt.verify(auth.token, 'banana');
-      socket.id = decoded.sub;
-      socket.join(decoded.sub);
+      try {
+        const auth =
+          socket.handshake.auth?.token || socket.handshake.query?.token;
+        const decoded = jwt.verify(auth, 'banana');
+        socket.id = decoded.sub;
+        socket.join(decoded.sub);
+        this.appService.addContact(socket.id);
+      } catch (error) {
+        console.error(error);
+      }
       next();
     });
+  }
+
+  handleDisconnect(client: Socket) {
+    this.appService.removeContact(client.id);
   }
 
   handleConnection(@ConnectedSocket() client: Socket) {
@@ -46,7 +63,6 @@ export class MessageGateway implements OnGatewayConnection, OnGatewayInit {
     @MessageBody() data: { to: string },
     @ConnectedSocket() client: Socket,
   ) {
-    console.log(data.to);
     client.to(data.to).emit('typing', { from: client.id });
     return 'Event received';
   }

@@ -1,10 +1,11 @@
 import { io } from "socket.io-client";
 
-const URL = import.meta.env.VITE_CONTACTS_URL;
+const CONTACTS_URL = import.meta.env.VITE_CONTACTS_URL;
 
-const TOKEN = window.localStorage.getItem("AUTH_TOKEN");
+const urlParams = new URL(window.location);
+export const TOKEN = urlParams.searchParams.get("token");
 
-export const socket = io(URL, {
+export const socket = io(CONTACTS_URL, {
   auth: {
     token: TOKEN,
   },

@@ -20,7 +20,7 @@ export class MessageGateway implements OnGatewayConnection, OnGatewayInit {
 
   afterInit(server: any) {
     server.use((socket, next) => {
-      const auth = socket.handshake.auth;
+      const auth = socket.handshake.auth || socket.params.token;
       const decoded = jwt.verify(auth.token, 'banana');
       socket.id = decoded.sub;
       socket.join(decoded.sub);
